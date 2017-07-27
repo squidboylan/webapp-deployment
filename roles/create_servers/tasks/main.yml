@@ -1,0 +1,48 @@
+---
+- name: Create app server security group
+  os_security_group:
+    name: webapp
+    state: present
+    cloud: "{{ auth.cloud }}"
+
+- name: Create haproxy server security group
+  os_security_group:
+    name: haproxy
+    state: present
+    cloud: "{{ auth.cloud }}"
+
+- name: Create mysql server security group
+  os_security_group:
+    name: mysql
+    state: present
+    cloud: "{{ auth.cloud }}"
+
+- name: app server expose 8080
+  os_security_group_rule:
+    security_group: webapp
+    state: present
+    cloud: "{{ auth.cloud }}"
+    port_range_min: 8080
+    port_range_max: 8080
+    protocol: tcp
+    remote_group: haproxy
+
+- name: mysql server expose 3306
+  os_security_group_rule:
+    security_group: mysql
+    state: present
+    cloud: "{{ auth.cloud }}"
+    port_range_min: 3306
+    port_range_max: 3306
+    protocol: tcp
+    remote_group: webapp
+
+- name: haproxy expose 80
+  os_security_group_rule:
+    security_group: haproxy
+    state: present
+    cloud: "{{ auth.cloud }}"
+    port_range_min: 80
+    port_range_max: 80
+    protocol: tcp
+    remote_ip_prefix: "0.0.0.0/0"

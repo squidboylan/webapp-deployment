@@ -1,0 +1,11 @@
+---
+auth:
+  cloud: favorite_openstack_cloud
+
+  key: abathur
+
+app:
+  app_servers: 1
+
+mysql:
+  root_pass: password

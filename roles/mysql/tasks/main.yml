@@ -1,0 +1,27 @@
+---
+- name: set MySQL password before installation
+    debconf:
+      name: 'mysql-server'
+      question: 'mysql-server/root_password'
+      value: '{{mysql.root_pass}}'
+      vtype: 'password'
+
+- name: set MySQL password confirmation before installation
+    debconf:
+      name: 'mysql-server'
+      question: 'mysql-server/root_password_again'
+      value: '{{mysql.root_pass}}'
+      vtype: 'password'
+
+- name: install mysql
+  apt:
+    name: mysql-server
+    state: present
+
+- name: configure bind address
+  replace:
+    path: "/etc/mysql/mysql.conf.d/mysqld.cnf"
+    regexp: "^bind_address\s+=.*"
+    replace: "bind_address		= 0.0.0.0"
+  notify:
+    - restart mysql

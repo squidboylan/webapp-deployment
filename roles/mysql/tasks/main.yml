@@ -25,3 +25,9 @@
     replace: "bind_address		= 0.0.0.0"
   notify:
     - restart mysql
+
+- name: enable and start mysql service
+  service:
+    name: mysql
+    state: started
+    enabled: yes

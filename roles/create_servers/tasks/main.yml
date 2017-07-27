@@ -46,3 +46,23 @@
     port_range_max: 80
     protocol: tcp
     remote_ip_prefix: "0.0.0.0/0"
+
+- name: Create load balancer
+  os_server:
+    name: haproxy
+    cloud: "{{ auth.cloud }}"
+    state: present
+    key_name: "{{ auth.key_name }}"
+    image: "{{ load_balancer.image }}"
+    timeout: 200
+    flavor: "{{ load_balancer.flavor }}"
+    network: "{{ load_balancer.network }}"
+    auto_ip: true
+    security_groups: haproxy
+  register: haproxy
+
+- name: Add haproxy node to the load balancer group
+  add_host:
+    name: "{{ haproxy.openstack.public_v4 }}"
+    groups: load_balancers
+  when: haproxy.openstack.public_v4 != ""

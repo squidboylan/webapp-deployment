@@ -1,0 +1,53 @@
+---
+- name: Install packages for app
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - python-pip
+    - python-virtualenv
+    - python-dev
+    - libmysqlclient-dev
+
+- name: create user to run app
+  user:
+    name: webapp
+    home: /opt/webapp
+    shell: /bin/bash
+
+- name: clone app repo
+  git:
+    repo: https://github.com/squidboylan/webapp.git
+    dest: /opt/webapp/app
+
+- name: set perms on the app repo
+  file:
+    recurse: yes
+    owner: webapp
+    path: /opt/webapp/app
+
+- name: configure app
+  template:
+    dest: /opt/webapp/app/config.yml
+    src: config.yml.j2
+    mode: 0600
+    owner: webapp
+
+- name: setup app dependencies
+  pip:
+    virtualenv: /opt/webapp/app/venv
+    requirements: /opt/webapp/app/requirements.txt
+    virtualenv_python: python2.7
+
+- name: create systemd unit file for app
+  copy:
+    src: webapp.service
+    dest: /etc/systemd/system/webapp.service
+
+- name: enable and start systemd service
+  systemd:
+    daemon_reload: yes
+    name: webapp
+    enabled: yes
+    state: started

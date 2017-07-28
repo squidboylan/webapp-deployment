@@ -1,0 +1,6 @@
+---
+mysql:
+  user: {{ app.db_user }}
+  password: {{ app.db_pass }}
+  host: {{ hostvars.localhost.database.openstack.private_v4 }}
+  db: {{ app.db_name }}

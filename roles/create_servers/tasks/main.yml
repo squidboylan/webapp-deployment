@@ -17,6 +17,12 @@
     state: present
     cloud: "{{ auth.cloud }}"
 
+- name: Create ssh security group
+  os_security_group:
+    name: ssh
+    state: present
+    cloud: "{{ auth.cloud }}"
+
 - name: app server expose 8080
   os_security_group_rule:
     security_group: webapp
@@ -37,6 +43,16 @@
     protocol: tcp
     remote_group: webapp
 
+- name: haproxy expose 443
+  os_security_group_rule:
+    security_group: haproxy
+    state: present
+    cloud: "{{ auth.cloud }}"
+    port_range_min: 443
+    port_range_max: 443
+    protocol: tcp
+    remote_ip_prefix: "0.0.0.0/0"
+
 - name: haproxy expose 80
   os_security_group_rule:
     security_group: haproxy
@@ -44,6 +60,16 @@
     cloud: "{{ auth.cloud }}"
     port_range_min: 80
     port_range_max: 80
+    protocol: tcp
+    remote_ip_prefix: "0.0.0.0/0"
+
+- name: expose 22 on all
+  os_security_group_rule:
+    security_group: ssh
+    state: present
+    cloud: "{{ auth.cloud }}"
+    port_range_min: 22
+    port_range_max: 22
     protocol: tcp
     remote_ip_prefix: "0.0.0.0/0"
 
@@ -58,11 +84,58 @@
     flavor: "{{ load_balancer.flavor }}"
     network: "{{ load_balancer.network }}"
     auto_ip: true
-    security_groups: haproxy
+    security_groups: haproxy,ssh
   register: haproxy
 
 - name: Add haproxy node to the load balancer group
   add_host:
     name: "{{ haproxy.openstack.public_v4 }}"
     groups: load_balancers
-  when: haproxy.openstack.public_v4 != ""
+
+- name: Create MySQL server
+  os_server:
+    name: mysql
+    cloud: "{{ auth.cloud }}"
+    state: present
+    key_name: "{{ auth.key_name }}"
+    image: "{{ mysql.image }}"
+    timeout: 200
+    flavor: "{{ mysql.flavor }}"
+    network: "{{ mysql.network }}"
+    auto_ip: false
+    security_groups: mysql,ssh
+  register: database
+
+- name: Add haproxy node to the load balancer group
+  add_host:
+    name: "{{ database.openstack.private_v4 }}"
+    groups: database_servers
+
+- name: Create app servers
+  os_server:
+    name: app-{{ item }}
+    cloud: "{{ auth.cloud }}"
+    state: present
+    key_name: "{{ auth.key_name }}"
+    image: "{{ app.image }}"
+    timeout: 200
+    flavor: "{{ app.flavor }}"
+    network: "{{ app.network }}"
+    auto_ip: false
+    security_groups: webapp,ssh
+  register: app_server
+  with_sequence: count={{ app.app_servers }}
+
+- name: Add app servers to app_servers group
+  add_host:
+    name: "{{ item.openstack.private_v4 }}"
+    groups: app_servers
+  with_items: "{{ app_server.results }}"
+
+- name: wait for ssh to load balancer
+  wait_for:
+    host: "{{ item }}"
+    port: 22
+    timeout: 60
+    state: started
+  with_items: "{{ groups.load_balancers }}"

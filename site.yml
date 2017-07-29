@@ -6,3 +6,33 @@
     - "vars/{{ env }}.yml"
   roles:
     - create_servers
+
+- name: setup mysql server
+  hosts: database_servers
+  user: ubuntu
+  become: true
+  become_user: root
+  vars_files:
+    - "vars/{{ env }}.yml"
+  roles:
+    - mysql
+
+- name: setup webapp servers
+  hosts: app_servers
+  user: ubuntu
+  become: true
+  become_user: root
+  vars_files:
+    - "vars/{{ env }}.yml"
+  roles:
+    - webapp
+
+- name: setup load balancer
+  hosts: load_balancers
+  user: ubuntu
+  become: true
+  become_user: root
+  vars_files:
+    - "vars/{{ env }}.yml"
+  roles:
+    - load_balancer

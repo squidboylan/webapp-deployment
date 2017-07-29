@@ -139,3 +139,23 @@
     timeout: 60
     state: started
   with_items: "{{ groups.load_balancers }}"
+
+- name: wait for ssh to database server
+  wait_for:
+    host: "{{ item }}"
+    port: 22
+    timeout: 60
+    state: started
+  with_items: "{{ groups.database_servers }}"
+  delegate_to: "{{ haproxy.openstack.public_v4 }}"
+  remote_user: ubuntu
+
+- name: wait for ssh to app servers
+  wait_for:
+    host: "{{ item }}"
+    port: 22
+    timeout: 60
+    state: started
+  with_items: "{{ groups.app_servers }}"
+  delegate_to: "{{ haproxy.openstack.public_v4 }}"
+  remote_user: ubuntu

@@ -5,7 +5,23 @@ auth:
   key: abathur
 
 app:
-  app_servers: 1
+  flavor: 100
+  image: "ubuntu-16.04-amd64"
+  network: "default-network"
+
+  app_servers: 2
+  db_pass: secretpass
+  db_name: app_data
+  db_user: webapp
 
 mysql:
-  root_pass: password
+  flavor: 101
+  image: "ubuntu-16.04-amd64"
+  network: "default-network"
+
+  root_pass: mysqlrootpass
+
+load_balancer:
+  flavor: 100
+  image: "ubuntu-16.04-amd64"
+  network: "default-network"

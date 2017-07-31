@@ -1,27 +1,52 @@
 ---
 auth:
+  # name of cloud to use configured in ~/.config/openstack/clouds.yml
   cloud: favorite_openstack_cloud
 
+  # Keypair in the openstack cloud to put on the new servers
   key: abathur
 
 app:
+  # app servers flavor
   flavor: 100
+
+  # app servers image
   image: "ubuntu-16.04-amd64"
+
+  # app servers network
   network: "default-network"
 
+  # number of app servers to create
   app_servers: 2
+
+  # password for the app server db_user
   db_pass: secretpass
+
+  # name of the app mysql database
   db_name: app_data
+
+  # name of the app db_user
   db_user: webapp
 
 mysql:
+  # mysql server flavor
   flavor: 101
+
+  # mysql server image
   image: "ubuntu-16.04-amd64"
+
+  # mysql server network
   network: "default-network"
 
+  # mysql root user password
   root_pass: mysqlrootpass
 
 load_balancer:
+  # load balancer server flavor
   flavor: 100
+
+  # load balancer server image
   image: "ubuntu-16.04-amd64"
+
+  # load balancer server network
   network: "default-network"

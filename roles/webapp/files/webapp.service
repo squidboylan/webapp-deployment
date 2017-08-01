@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 WorkingDirectory=/opt/webapp/app/
 ExecStart=/opt/webapp/app/venv/bin/python /opt/webapp/app/app.py
-ExecStop=/usr/bin/pkill /opt/webapp/app/app.py
+ExecStop=/usr/bin/pkill -f "/opt/webapp/app/venv/bin/python /opt/webapp/app/app.py"
 User=webapp
 
 [Install]

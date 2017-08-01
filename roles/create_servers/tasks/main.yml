@@ -5,9 +5,9 @@
     state: present
     cloud: "{{ auth.cloud }}"
 
-- name: Create haproxy server security group
+- name: Create load balancer server security group
   os_security_group:
-    name: haproxy
+    name: load_balancer
     state: present
     cloud: "{{ auth.cloud }}"
 
@@ -31,7 +31,7 @@
     port_range_min: 8080
     port_range_max: 8080
     protocol: tcp
-    remote_group: haproxy
+    remote_group: load_balancer
 
 - name: mysql server expose 3306
   os_security_group_rule:
@@ -43,9 +43,9 @@
     protocol: tcp
     remote_group: webapp
 
-- name: haproxy expose 443
+- name: load balancer expose 443
   os_security_group_rule:
-    security_group: haproxy
+    security_group: load_balancer
     state: present
     cloud: "{{ auth.cloud }}"
     port_range_min: 443
@@ -53,9 +53,9 @@
     protocol: tcp
     remote_ip_prefix: "0.0.0.0/0"
 
-- name: haproxy expose 80
+- name: load balancer expose 80
   os_security_group_rule:
-    security_group: haproxy
+    security_group: load_balancer
     state: present
     cloud: "{{ auth.cloud }}"
     port_range_min: 80
@@ -84,12 +84,12 @@
     flavor: "{{ load_balancer.flavor }}"
     network: "{{ load_balancer.network }}"
     auto_ip: true
-    security_groups: haproxy,ssh
-  register: haproxy
+    security_groups: load_balancer,ssh
+  register: load_balancer
 
-- name: Add haproxy node to the load balancer group
+- name: Add load balancer node to the load balancer group
   add_host:
-    name: "{{ haproxy.openstack.public_v4 }}"
+    name: "{{ load_balancer.openstack.public_v4 }}"
     groups: load_balancers
 
 - name: Create MySQL server
@@ -106,7 +106,7 @@
     security_groups: mysql,ssh
   register: database
 
-- name: Add haproxy node to the load balancer group
+- name: Add load balancer node to the load balancer group
   add_host:
     name: "{{ database.openstack.private_v4 }}"
     groups: database_servers
@@ -147,7 +147,7 @@
     timeout: 60
     state: started
   with_items: "{{ groups.database_servers }}"
-  delegate_to: "{{ haproxy.openstack.public_v4 }}"
+  delegate_to: "{{ load_balancer.openstack.public_v4 }}"
   remote_user: ubuntu
 
 - name: wait for ssh to app servers
@@ -157,5 +157,5 @@
     timeout: 60
     state: started
   with_items: "{{ groups.app_servers }}"
-  delegate_to: "{{ haproxy.openstack.public_v4 }}"
+  delegate_to: "{{ load_balancer.openstack.public_v4 }}"
   remote_user: ubuntu

@@ -11,7 +11,7 @@
   register: key
 
 - name: create self-signed SSL cert
-  command: openssl req -new -nodes -x509 -subj "/C=US/ST=Oregon/L=Portland/O=IT/CN={{ hostvars.localhost.haproxy.openstack.public_v4 }}" -days 365 -keyout /etc/ssl/private/server.key -out /etc/ssl/private/server.crt
+  command: openssl req -new -nodes -x509 -subj "/C=US/ST=Oregon/L=Portland/O=IT/CN={{ hostvars.localhost.load_balancer.openstack.public_v4 }}" -days 365 -keyout /etc/ssl/private/server.key -out /etc/ssl/private/server.crt
   when: key.stat.exists == False
 
 - name: create pem file
